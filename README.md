@@ -12,9 +12,35 @@ Campus cafeteria ordering. Guests order with a name. Students can register to tr
 
 MongoDB databases on one instance: `campusbite_menu`, `campusbite_orders`, `campusbite_notify`, `campusbite_auth`.
 
-## Setup
+Pick one way to run the app.
+
+## Run with Docker
+
+This starts everything. You do not need the local setup below.
+
+Only the root `.env`.
+
+```powershell
+copy .env.example .env
+```
+
+macOS / Linux: `cp .env.example .env`
+
+Fill in the values in `.env`, then:
+
+```powershell
+docker compose up --build
+```
+
+App: http://127.0.0.1:5173
+
+Stop with `docker compose down`.
+
+## Run without Docker
 
 Python 3.11+, Node.js 20+, MongoDB on `127.0.0.1:27017`.
+
+One `.env` in each service folder (`menu-service`, `order-service`, `notify-service`, `auth-service`, `frontend`). 
 
 ```powershell
 copy menu-service\.env.example menu-service\.env
@@ -25,8 +51,6 @@ copy frontend\.env.example frontend\.env
 ```
 
 macOS / Linux: use `cp` instead of `copy`. Defaults work for local MongoDB without auth. Keep `JWT_SECRET` the same in every backend `.env`.
-
-## Run
 
 Start MongoDB, then one terminal per service.
 
