@@ -16,19 +16,13 @@ MongoDB (one instance, four databases): `campusbite_menu`, `campusbite_orders`, 
 
 Workflow: [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml)
 
-On push to `main`, GitHub Actions builds five images in parallel and pushes them to Docker Hub:
+**CI** — on push to `main`, five images are built in parallel and published to Docker Hub (`angelaangeleska/campusbite-*`, tags `latest` and `git-<sha>`). Registry login uses `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. Application credentials are not used in this job.
 
-- `angelaangeleska/campusbite-menu`
-- `angelaangeleska/campusbite-order`
-- `angelaangeleska/campusbite-notify`
-- `angelaangeleska/campusbite-auth`
-- `angelaangeleska/campusbite-frontend`
+**CD** — after a successful publish, `kubectl apply -k k8s` runs on a self-hosted runner against the local k3d cluster (`mycluster`), namespace `campusbite`. Runtime credentials come from Actions secrets `JWT_SECRET`, `MONGO_ROOT_USERNAME`, and `MONGO_ROOT_PASSWORD`. The deploy job runs only when the Actions variable `CD_ENABLED` is `true`.
 
-Tags: `latest`, `git-<sha>`.
+Cluster URL: http://campusbite.local
 
-Registry login uses GitHub Actions secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. `JWT_SECRET` and Mongo credentials are not used in the pipeline and are not baked into images.
-
-Kubernetes manifests consume these images: [`k8s/README.md`](k8s/README.md).
+Kubernetes layout: [`k8s/README.md`](k8s/README.md).
 
 ## Docker Compose
 
@@ -54,3 +48,4 @@ uvicorn app.main:app --reload --port 8001
 Repeat for `order-service` (8002), `notify-service` (8003), `auth-service` (8004). Frontend: `cd frontend && npm install && npm run dev`.
 
 API docs: http://127.0.0.1:8001/docs, [8002](http://127.0.0.1:8002/docs), [8003](http://127.0.0.1:8003/docs), [8004](http://127.0.0.1:8004/docs).
+

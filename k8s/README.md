@@ -44,5 +44,6 @@ kubectl apply -k k8s
 kubectl -n campusbite get all,ingress,pvc,configmap,secret
 ```
 
-Hosts entry: `127.0.0.1 campusbite.local`  
-URL: http://campusbite.local
+Target: k3d cluster `mycluster` on the local machine. Namespace: `campusbite`. Ingress: http://campusbite.local (`127.0.0.1` in the hosts file).
+
+The same apply is the CD job in GitHub Actions (self-hosted runner, `CD_ENABLED=true`).

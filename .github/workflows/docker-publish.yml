@@ -1,4 +1,4 @@
-name: Publish CampusBite images
+name: CampusBite CI/CD
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: publish-images-${{ github.ref }}
+  group: campusbite-cicd-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -61,3 +61,42 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  deploy:
+    name: Deploy to Kubernetes
+    needs: publish
+    if: ${{ vars.CD_ENABLED == 'true' }}
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Materialize cluster secrets
+        shell: pwsh
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MONGO_ROOT_USERNAME: ${{ secrets.MONGO_ROOT_USERNAME }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+        run: |
+          if (-not $env:JWT_SECRET -or -not $env:MONGO_ROOT_PASSWORD) {
+            throw "Set GitHub Actions secrets JWT_SECRET and MONGO_ROOT_PASSWORD."
+          }
+          $user = if ($env:MONGO_ROOT_USERNAME) { $env:MONGO_ROOT_USERNAME } else { "campusbite" }
+          @(
+            "jwt-secret=$($env:JWT_SECRET)"
+            "mongo-root-username=$user"
+            "mongo-root-password=$($env:MONGO_ROOT_PASSWORD)"
+          ) | Set-Content -Path k8s/secrets.env -Encoding ascii
+
+      - name: Apply manifests
+        shell: pwsh
+        run: kubectl apply -k k8s
+
+      - name: Wait for rollouts
+        shell: pwsh
+        run: |
+          kubectl -n campusbite rollout status statefulset/mongo --timeout=180s
+          foreach ($name in @("menu-service","order-service","notify-service","auth-service","frontend")) {
+            kubectl -n campusbite rollout status "deployment/$name" --timeout=180s
+          }
+          kubectl -n campusbite get all,ingress,pvc
