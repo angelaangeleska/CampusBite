@@ -72,28 +72,28 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Materialize cluster secrets
-        shell: pwsh
+        shell: powershell
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           MONGO_ROOT_USERNAME: ${{ secrets.MONGO_ROOT_USERNAME }}
           MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
         run: |
-          if (-not $env:JWT_SECRET -or -not $env:MONGO_ROOT_PASSWORD) {
-            throw "Set GitHub Actions secrets JWT_SECRET and MONGO_ROOT_PASSWORD."
-          }
-          $user = if ($env:MONGO_ROOT_USERNAME) { $env:MONGO_ROOT_USERNAME } else { "campusbite" }
-          @(
-            "jwt-secret=$($env:JWT_SECRET)"
-            "mongo-root-username=$user"
-            "mongo-root-password=$($env:MONGO_ROOT_PASSWORD)"
-          ) | Set-Content -Path k8s/secrets.env -Encoding ascii
+          if ([string]::IsNullOrWhiteSpace($env:JWT_SECRET)) { throw "Missing secret JWT_SECRET" }
+          if ([string]::IsNullOrWhiteSpace($env:MONGO_ROOT_PASSWORD)) { throw "Missing secret MONGO_ROOT_PASSWORD" }
+          $user = $env:MONGO_ROOT_USERNAME
+          if ([string]::IsNullOrWhiteSpace($user)) { $user = "campusbite" }
+          Set-Content -Path k8s/secrets.env -Encoding ascii -Value (
+            "jwt-secret=$env:JWT_SECRET",
+            "mongo-root-username=$user",
+            "mongo-root-password=$env:MONGO_ROOT_PASSWORD"
+          )
 
       - name: Apply manifests
-        shell: pwsh
+        shell: powershell
         run: kubectl apply -k k8s
 
       - name: Wait for rollouts
-        shell: pwsh
+        shell: powershell
         run: |
           kubectl -n campusbite rollout status statefulset/mongo --timeout=180s
           foreach ($name in @("menu-service","order-service","notify-service","auth-service","frontend")) {
