@@ -55,10 +55,17 @@ export type TokenResponse = {
   role: "customer" | "staff";
 };
 
-const MENU_API = import.meta.env.VITE_MENU_API_URL ?? "http://127.0.0.1:8001";
-const ORDER_API = import.meta.env.VITE_ORDER_API_URL ?? "http://127.0.0.1:8002";
-const NOTIFY_API = import.meta.env.VITE_NOTIFY_API_URL ?? "http://127.0.0.1:8003";
-const AUTH_API = import.meta.env.VITE_AUTH_API_URL ?? "http://127.0.0.1:8004";
+function browserApiBase(envValue: string | undefined, devFallback: string): string {
+  if (import.meta.env.DEV) {
+    return (envValue ?? devFallback).replace(/\/$/, "");
+  }
+  return (envValue || "").replace(/\/$/, "");
+}
+
+const MENU_API = browserApiBase(import.meta.env.VITE_MENU_API_URL, "http://127.0.0.1:8001");
+const ORDER_API = browserApiBase(import.meta.env.VITE_ORDER_API_URL, "http://127.0.0.1:8002");
+const NOTIFY_API = browserApiBase(import.meta.env.VITE_NOTIFY_API_URL, "http://127.0.0.1:8003");
+const AUTH_API = browserApiBase(import.meta.env.VITE_AUTH_API_URL, "http://127.0.0.1:8004");
 
 type ApiContext = {
   token: string | null;

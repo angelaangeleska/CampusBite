@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: campusbite
+  labels:
+    app.kubernetes.io/part-of: campusbite
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 4m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: campusbite.local
+      http:
+        paths:
+          - path: /api/menu
+            pathType: Prefix
+            backend:
+              service:
+                name: menu-service
+                port:
+                  number: 8001
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8002
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notify-service
+                port:
+                  number: 8003
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 8004
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

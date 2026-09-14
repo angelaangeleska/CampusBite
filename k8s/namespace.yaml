@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: campusbite
+  labels:
+    app.kubernetes.io/part-of: campusbite
+    campus.finki/project: cafeteria-ordering

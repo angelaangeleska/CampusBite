@@ -59,10 +59,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_MENU_API_URL=http://localhost:8001
-            VITE_ORDER_API_URL=http://localhost:8002
-            VITE_NOTIFY_API_URL=http://localhost:8003
-            VITE_AUTH_API_URL=http://localhost:8004
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}

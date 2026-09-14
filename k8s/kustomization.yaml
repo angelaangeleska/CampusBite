@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: campusbite
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - mongo-configmap.yaml
+  - mongo-service.yaml
+  - mongo-statefulset.yaml
+  - menu-deployment.yaml
+  - menu-service.yaml
+  - order-deployment.yaml
+  - order-service.yaml
+  - notify-deployment.yaml
+  - notify-service.yaml
+  - auth-deployment.yaml
+  - auth-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+  - ingress.yaml
+
+secretGenerator:
+  - name: campusbite-secrets
+    envs:
+      - secrets.env
+    options:
+      disableNameSuffixHash: true
+
+images:
+  - name: campusbite-menu
+    newName: angelaangeleska/campusbite-menu
+    newTag: latest
+  - name: campusbite-order
+    newName: angelaangeleska/campusbite-order
+    newTag: latest
+  - name: campusbite-notify
+    newName: angelaangeleska/campusbite-notify
+    newTag: latest
+  - name: campusbite-auth
+    newName: angelaangeleska/campusbite-auth
+    newTag: latest
+  - name: campusbite-frontend
+    newName: angelaangeleska/campusbite-frontend
+    newTag: latest

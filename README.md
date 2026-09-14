@@ -12,7 +12,13 @@ Campus cafeteria ordering. Guests order with a name. Students can register to tr
 
 MongoDB databases on one instance: `campusbite_menu`, `campusbite_orders`, `campusbite_notify`, `campusbite_auth`.
 
-Pick one way to run the app.
+## CI/CD
+
+On each push to `main`, GitHub Actions k(`.github/workflows/docer-publish.yml`) builds all five service images in parallel and publishes them to Docker Hub (`/campusbite-*`), tagged `latest` and `git-<sha>`.
+
+Login uses repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. 
+
+Kubernetes pulls those images; see [`k8s/README.md`](k8s/README.md).
 
 ## Run with Docker
 

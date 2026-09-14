@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notify-service
+  labels:
+    app.kubernetes.io/part-of: campusbite
+    app.kubernetes.io/component: notify
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: notify
+  ports:
+    - name: http
+      port: 8003
+      targetPort: 8003

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  labels:
+    app.kubernetes.io/part-of: campusbite
+    app.kubernetes.io/component: mongo
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/component: mongo
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017

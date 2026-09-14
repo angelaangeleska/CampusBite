@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-cafeteria-config
+  labels:
+    app.kubernetes.io/part-of: campusbite
+    app.kubernetes.io/component: mongo
+data:
+  mongod.conf: |
+    storage:
+      dbPath: /data/db
+    net:
+      bindIpAll: true
+      port: 27017
+  01-campusbite-collections.js: |
+    db.getSiblingDB("campusbite_menu").createCollection("menu_items");
+    db.getSiblingDB("campusbite_orders").createCollection("orders");
+    db.getSiblingDB("campusbite_notify").createCollection("notifications");
+    db.getSiblingDB("campusbite_auth").createCollection("users");

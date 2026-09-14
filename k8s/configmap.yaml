@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: campusbite-config
+  labels:
+    app.kubernetes.io/part-of: campusbite
+data:
+  CORS_ORIGINS: "http://campusbite.local,http://127.0.0.1:5173,http://localhost:5173"
+  MENU_SERVICE_URL: "http://menu-service:8001"
+  NOTIFY_SERVICE_URL: "http://notify-service:8003"
