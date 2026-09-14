@@ -1,80 +1,56 @@
 # CampusBite
 
-Campus cafeteria ordering. Guests order with a name. Students can register to track the current order and history after pickup. Staff log in to manage today’s menu and the kitchen queue (`pending` → accept/deny → `preparing` → `ready` → `picked_up`).
+Campus cafeteria ordering. Guests order with a name. Registered students can track the current order and history after pickup. Staff manage today’s menu and the kitchen queue (`pending` → accept/deny → `preparing` → `ready` → `picked_up`).
 
-| Folder | Port |
-|--------|------|
+| Service | Port |
+|---------|------|
 | `frontend/` | 5173 |
 | `menu-service/` | 8001 |
 | `order-service/` | 8002 |
 | `notify-service/` | 8003 |
 | `auth-service/` | 8004 |
 
-MongoDB databases on one instance: `campusbite_menu`, `campusbite_orders`, `campusbite_notify`, `campusbite_auth`.
+MongoDB (one instance, four databases): `campusbite_menu`, `campusbite_orders`, `campusbite_notify`, `campusbite_auth`.
 
 ## CI/CD
 
-On each push to `main`, GitHub Actions k(`.github/workflows/docer-publish.yml`) builds all five service images in parallel and publishes them to Docker Hub (`/campusbite-*`), tagged `latest` and `git-<sha>`.
+Workflow: [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml)
 
-Login uses repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. 
+On push to `main`, GitHub Actions builds five images in parallel and pushes them to Docker Hub:
 
-Kubernetes pulls those images; see [`k8s/README.md`](k8s/README.md).
+- `angelaangeleska/campusbite-menu`
+- `angelaangeleska/campusbite-order`
+- `angelaangeleska/campusbite-notify`
+- `angelaangeleska/campusbite-auth`
+- `angelaangeleska/campusbite-frontend`
 
-## Run with Docker
+Tags: `latest`, `git-<sha>`.
 
-This starts everything. You do not need the local setup below.
+Registry login uses GitHub Actions secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. `JWT_SECRET` and Mongo credentials are not used in the pipeline and are not baked into images.
 
-Only the root `.env`.
+Kubernetes manifests consume these images: [`k8s/README.md`](k8s/README.md).
 
-```powershell
-copy .env.example .env
-```
+## Docker Compose
 
-macOS / Linux: `cp .env.example .env`
-
-Fill in the values in `.env`, then:
-
-```powershell
+```bash
+cp .env.example .env
 docker compose up --build
 ```
 
 App: http://127.0.0.1:5173
 
-Stop with `docker compose down`.
+Values come from `.env` (gitignored). Template: `.env.example`.
 
-## Run without Docker
+## Local (without Docker)
 
-Python 3.11+, Node.js 20+, MongoDB on `127.0.0.1:27017`.
+Python 3.11+, Node.js 20+, MongoDB on `127.0.0.1:27017`. Copy each service `.env.example` to `.env`. Use the same `JWT_SECRET` in every backend.
 
-One `.env` in each service folder (`menu-service`, `order-service`, `notify-service`, `auth-service`, `frontend`). 
-
-```powershell
-copy menu-service\.env.example menu-service\.env
-copy order-service\.env.example order-service\.env
-copy notify-service\.env.example notify-service\.env
-copy auth-service\.env.example auth-service\.env
-copy frontend\.env.example frontend\.env
-```
-
-macOS / Linux: use `cp` instead of `copy`. Defaults work for local MongoDB without auth. Keep `JWT_SECRET` the same in every backend `.env`.
-
-Start MongoDB, then one terminal per service.
-
-```powershell
-cd menu-service
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+```bash
+cd menu-service && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8001
 ```
 
-Same for `order-service` (`8002`), `notify-service` (`8003`), and `auth-service` (`8004`). On macOS / Linux: `source .venv/bin/activate`.
+Repeat for `order-service` (8002), `notify-service` (8003), `auth-service` (8004). Frontend: `cd frontend && npm install && npm run dev`.
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-- App: http://127.0.0.1:5173
-- API docs: http://127.0.0.1:8001/docs, [8002](http://127.0.0.1:8002/docs), [8003](http://127.0.0.1:8003/docs), [8004](http://127.0.0.1:8004/docs)
+API docs: http://127.0.0.1:8001/docs, [8002](http://127.0.0.1:8002/docs), [8003](http://127.0.0.1:8003/docs), [8004](http://127.0.0.1:8004/docs).

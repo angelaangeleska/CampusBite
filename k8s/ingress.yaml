@@ -5,11 +5,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: campusbite
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: 4m
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     - host: campusbite.local
       http:
