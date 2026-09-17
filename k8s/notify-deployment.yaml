@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/part-of: campusbite
     app.kubernetes.io/component: notify
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/component: notify
@@ -43,6 +43,12 @@ spec:
                   key: mongo-root-password
             - name: MONGO_URI
               value: mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-0.mongo:27017/campusbite_notify?authSource=admin
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            periodSeconds: 5
+            failureThreshold: 18
           readinessProbe:
             httpGet:
               path: /health

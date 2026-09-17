@@ -22,6 +22,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: 80
+            periodSeconds: 5
+            failureThreshold: 12
           readinessProbe:
             httpGet:
               path: /ready

@@ -1,6 +1,6 @@
 # Kubernetes
 
-Namespace: `campusbite`. Pods pull images from Docker Hub (`angelaangeleska/campusbite-*`, tags `latest` and `git-<sha>`), published by GitHub Actions on push to `main`. Image names are set in `kustomization.yaml`. `imagePullPolicy: Always`.
+Namespace: `campusbite`. Pods pull images from Docker Hub (`angelaangeleska/campusbite-*`). Manual apply uses `latest`; the CD job rewrites `kustomization.yaml` to `git-<sha>` so each push rolls out that exact build. `imagePullPolicy: Always`.
 
 ## Cluster
 
@@ -30,9 +30,9 @@ Pods take `JWT_SECRET` from the Secret. Mongo connection strings are built at ru
 
 | Kind | Name |
 |------|------|
-| Deployment | `menu-service`, `order-service`, `notify-service`, `auth-service`, `frontend` |
+| Deployment | `menu-service`, `order-service`, `notify-service`, `auth-service`, `frontend` (2 replicas) |
 | Service | ClusterIP per app; headless `mongo` |
-| StatefulSet | `mongo` (PVC 2Gi) |
+| StatefulSet | `mongo` (1 replica, PVC 2Gi) |
 | Ingress | `campusbite` — host `campusbite.local` |
 
 Ingress paths: `/api/menu`, `/api/orders`, `/api/notifications`, `/api/auth`, `/`.
@@ -46,4 +46,4 @@ kubectl -n campusbite get all,ingress,pvc,configmap,secret
 
 Target: k3d cluster `mycluster` on the local machine. Namespace: `campusbite`. Ingress: http://campusbite.local (`127.0.0.1` in the hosts file).
 
-The same apply is the CD job in GitHub Actions (self-hosted runner, `CD_ENABLED=true`).
+CD (self-hosted runner, `CD_ENABLED=true`) copies secrets, pins images to `git-<sha>`, then `kubectl apply -k k8s`.

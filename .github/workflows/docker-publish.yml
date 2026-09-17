@@ -13,6 +13,24 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    name: Validate Compose and manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Docker Compose file
+        run: docker compose config --quiet
+
+      - name: Render Kubernetes manifests
+        run: |
+          cp k8s/secrets.env.example k8s/secrets.env
+          kubectl kustomize k8s >/tmp/campusbite-manifests.yaml
+          kubectl kustomize k8s | grep -q "kind: Namespace"
+          kubectl kustomize k8s | grep -q "kind: StatefulSet"
+          kubectl kustomize k8s | grep -q "kind: Ingress"
+
   publish:
     name: Push ${{ matrix.image }}
     runs-on: ubuntu-latest
@@ -64,7 +82,7 @@ jobs:
 
   deploy:
     name: Deploy to Kubernetes
-    needs: publish
+    needs: [validate, publish]
     if: ${{ vars.CD_ENABLED == 'true' }}
     runs-on: self-hosted
     steps:
@@ -87,6 +105,18 @@ jobs:
             "mongo-root-username=$user",
             "mongo-root-password=$env:MONGO_ROOT_PASSWORD"
           )
+
+      - name: Pin Deployments to this commit's image tag
+        shell: powershell
+        run: |
+          $tag = "git-" + "${{ github.sha }}".Substring(0, 7)
+          Write-Host "Deploying image tag $tag"
+          $path = Join-Path $PWD "k8s\kustomization.yaml"
+          $content = [System.IO.File]::ReadAllText($path)
+          $updated = $content -replace "newTag: latest", "newTag: $tag"
+          if ($updated -eq $content) { throw "Failed to pin image tags in kustomization.yaml" }
+          $utf8 = New-Object System.Text.UTF8Encoding $false
+          [System.IO.File]::WriteAllText($path, $updated, $utf8)
 
       - name: Apply manifests
         shell: powershell

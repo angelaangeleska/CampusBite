@@ -4,36 +4,55 @@ services:
   mongo:
     image: mongo:7.0
     container_name: campusbite_mongo
+    restart: unless-stopped
     volumes:
       - mongo_data:/data/db
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
 
   menu-service:
     build:
       context: ./menu-service
     container_name: campusbite_menu
+    restart: unless-stopped
     ports:
       - "8001:8001"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - MONGO_URI=${MENU_MONGO_URI}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGINS=${CORS_ORIGINS}
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
   order-service:
     build:
       context: ./order-service
     container_name: campusbite_orders
+    restart: unless-stopped
     ports:
       - "8002:8002"
     depends_on:
-      - mongo
-      - menu-service
-      - notify-service
+      mongo:
+        condition: service_healthy
+      menu-service:
+        condition: service_healthy
+      notify-service:
+        condition: service_healthy
     environment:
       - MONGO_URI=${ORDER_MONGO_URI}
       - MENU_SERVICE_URL=${MENU_SERVICE_URL}
@@ -42,50 +61,83 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS}
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
   notify-service:
     build:
       context: ./notify-service
     container_name: campusbite_notify
+    restart: unless-stopped
     ports:
       - "8003:8003"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - MONGO_URI=${NOTIFY_MONGO_URI}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGINS=${CORS_ORIGINS}
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
   auth-service:
     build:
       context: ./auth-service
     container_name: campusbite_auth
+    restart: unless-stopped
     ports:
       - "8004:8004"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - MONGO_URI=${AUTH_MONGO_URI}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGINS=${CORS_ORIGINS}
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
   frontend:
     build:
       context: ./frontend
     container_name: campusbite_frontend
+    restart: unless-stopped
     ports:
       - "5173:80"
     depends_on:
-      - menu-service
-      - order-service
-      - notify-service
-      - auth-service
+      menu-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      notify-service:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
     networks:
       - campusbite_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
 
 volumes:
   mongo_data:
