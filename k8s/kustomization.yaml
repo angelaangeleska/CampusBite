@@ -9,6 +9,7 @@ resources:
   - mongo-configmap.yaml
   - mongo-service.yaml
   - mongo-statefulset.yaml
+  - mongo-rs-init.yaml
   - menu-deployment.yaml
   - menu-service.yaml
   - order-deployment.yaml

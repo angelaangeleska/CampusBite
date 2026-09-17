@@ -170,8 +170,25 @@ jobs:
       - name: Wait for rollouts
         shell: powershell
         run: |
-          kubectl -n campusbite rollout status statefulset/mongo --timeout=180s
+          kubectl -n campusbite rollout status statefulset/mongo --timeout=300s
+          kubectl -n campusbite wait --for=condition=complete job/mongo-rs-init --timeout=180s
           foreach ($name in @("menu-service","order-service","notify-service","auth-service","frontend")) {
             kubectl -n campusbite rollout status "deployment/$name" --timeout=180s
           }
           kubectl -n campusbite get all,ingress,pvc
+
+      - name: Write job summary
+        shell: powershell
+        run: |
+          $tag = "git-" + "${{ github.sha }}".Substring(0, 7)
+          $path = $env:GITHUB_STEP_SUMMARY
+          Add-Content -Path $path -Value "## CampusBite"
+          Add-Content -Path $path -Value ""
+          Add-Content -Path $path -Value "- URL: http://campusbite.local"
+          Add-Content -Path $path -Value "- Namespace: ``campusbite``"
+          Add-Content -Path $path -Value "- Cluster: k3d ``mycluster``"
+          Add-Content -Path $path -Value "- Image tag: ``$tag``"
+          Add-Content -Path $path -Value ""
+          Add-Content -Path $path -Value "``````"
+          kubectl -n campusbite get pods,ingress | Add-Content -Path $path
+          Add-Content -Path $path -Value "``````"

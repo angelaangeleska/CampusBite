@@ -14,9 +14,9 @@ k3s provides Traefik (`ingressClassName: traefik`).
 
 | Object | Contents |
 |--------|----------|
-| ConfigMap `campusbite-config` | `CORS_ORIGINS`, `MENU_SERVICE_URL`, `NOTIFY_SERVICE_URL` |
-| ConfigMap `mongo-cafeteria-config` | `mongod.conf`, collection init script |
-| Secret `campusbite-secrets` | `jwt-secret`, `mongo-root-username`, `mongo-root-password` |
+| ConfigMap `campusbite-config` | `CORS_ORIGINS`, service URLs, Mongo replica-set URIs |
+| ConfigMap `mongo-cafeteria-config` | `mongod.conf` (`replSetName: rs0`) |
+| Secret `campusbite-secrets` | `jwt-secret` |
 
 The Secret is generated from `secrets.env` (gitignored). Template: `secrets.env.example`.
 
@@ -24,7 +24,7 @@ The Secret is generated from `secrets.env` (gitignored). Template: `secrets.env.
 cp k8s/secrets.env.example k8s/secrets.env
 ```
 
-Pods take `JWT_SECRET` from the Secret. Mongo connection strings are built at runtime from the same keys (`authSource=admin`). The StatefulSet sets `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` from the Secret.
+Pods take `JWT_SECRET` from the Secret and `MONGO_URI` from the ConfigMap (`replicaSet=rs0`). Mongo runs as a 3-member replica set. Job `mongo-rs-init` runs `rs.initiate()`.
 
 ## Resources
 
@@ -32,7 +32,8 @@ Pods take `JWT_SECRET` from the Secret. Mongo connection strings are built at ru
 |------|------|
 | Deployment | `menu-service`, `order-service`, `notify-service`, `auth-service`, `frontend` (2 replicas) |
 | Service | ClusterIP per app; headless `mongo` |
-| StatefulSet | `mongo` (1 replica, PVC 2Gi) |
+| StatefulSet | `mongo` (3 replicas, replica set `rs0`, PVC 1Gi each) |
+| Job | `mongo-rs-init` |
 | Ingress | `campusbite` — host `campusbite.local` |
 
 Ingress paths: `/api/menu`, `/api/orders`, `/api/notifications`, `/api/auth`, `/`.

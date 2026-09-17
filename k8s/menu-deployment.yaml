@@ -31,18 +31,11 @@ spec:
                 secretKeyRef:
                   name: campusbite-secrets
                   key: jwt-secret
-            - name: MONGO_ROOT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: campusbite-secrets
-                  key: mongo-root-username
-            - name: MONGO_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: campusbite-secrets
-                  key: mongo-root-password
             - name: MONGO_URI
-              value: mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongo-0.mongo:27017/campusbite_menu?authSource=admin
+              valueFrom:
+                configMapKeyRef:
+                  name: campusbite-config
+                  key: MENU_MONGO_URI
           startupProbe:
             httpGet:
               path: /health

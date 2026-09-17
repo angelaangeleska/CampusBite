@@ -9,6 +9,8 @@ data:
   mongod.conf: |
     storage:
       dbPath: /data/db
+    replication:
+      replSetName: rs0
     net:
       bindIpAll: true
       port: 27017

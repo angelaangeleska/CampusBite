@@ -18,7 +18,7 @@ Workflow: [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publ
 
 **CI** — on push to `main`, the pipeline validates Docker Compose and Kubernetes manifests, runs backend pytest and frontend Vitest + build, then publishes five images in parallel to Docker Hub (`angelaangeleska/campusbite-*`, tags `latest` and `git-<sha>`). Images are not pushed if tests fail. Registry login uses `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`. Application credentials are not used in this job.
 
-**CD** — after a successful publish, the self-hosted runner pins `kustomization.yaml` to `git-<sha>` (the same tag just pushed), then runs `kubectl apply -k k8s` against the local k3d cluster (`mycluster`), namespace `campusbite`. That changes the Deployment image field, so Kubernetes rolls out the new pods. Runtime credentials come from Actions secrets `JWT_SECRET`, `MONGO_ROOT_USERNAME`, and `MONGO_ROOT_PASSWORD`. The deploy job runs only when the Actions variable `CD_ENABLED` is `true`.
+**CD** — after a successful publish, the self-hosted runner pins `kustomization.yaml` to `git-<sha>` (the same tag just pushed), then runs `kubectl apply -k k8s` against the local k3d cluster (`mycluster`), namespace `campusbite`. That changes the Deployment image field, so Kubernetes rolls out the new pods. Runtime credentials come from Actions secrets `JWT_SECRET`, `MONGO_ROOT_USERNAME`, and `MONGO_ROOT_PASSWORD`. The deploy job runs only when the Actions variable `CD_ENABLED` is `true`. The job Summary prints http://campusbite.local and `kubectl` status.
 
 Cluster URL: http://campusbite.local
 

@@ -8,3 +8,7 @@ data:
   CORS_ORIGINS: "http://campusbite.local,http://127.0.0.1:5173,http://localhost:5173"
   MENU_SERVICE_URL: "http://menu-service:8001"
   NOTIFY_SERVICE_URL: "http://notify-service:8003"
+  MENU_MONGO_URI: "mongodb://mongo-0.mongo.campusbite.svc.cluster.local:27017,mongo-1.mongo.campusbite.svc.cluster.local:27017,mongo-2.mongo.campusbite.svc.cluster.local:27017/campusbite_menu?replicaSet=rs0"
+  ORDER_MONGO_URI: "mongodb://mongo-0.mongo.campusbite.svc.cluster.local:27017,mongo-1.mongo.campusbite.svc.cluster.local:27017,mongo-2.mongo.campusbite.svc.cluster.local:27017/campusbite_orders?replicaSet=rs0"
+  NOTIFY_MONGO_URI: "mongodb://mongo-0.mongo.campusbite.svc.cluster.local:27017,mongo-1.mongo.campusbite.svc.cluster.local:27017,mongo-2.mongo.campusbite.svc.cluster.local:27017/campusbite_notify?replicaSet=rs0"
+  AUTH_MONGO_URI: "mongodb://mongo-0.mongo.campusbite.svc.cluster.local:27017,mongo-1.mongo.campusbite.svc.cluster.local:27017,mongo-2.mongo.campusbite.svc.cluster.local:27017/campusbite_auth?replicaSet=rs0"

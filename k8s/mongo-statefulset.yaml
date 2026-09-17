@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: mongo
 spec:
   serviceName: mongo
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/component: mongo
@@ -23,26 +23,17 @@ spec:
           ports:
             - name: mongodb
               containerPort: 27017
-          env:
-            - name: MONGO_INITDB_ROOT_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: campusbite-secrets
-                  key: mongo-root-username
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: campusbite-secrets
-                  key: mongo-root-password
+          command:
+            - mongod
+            - --replSet
+            - rs0
+            - --bind_ip_all
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
             - name: mongo-config
               mountPath: /etc/mongo/mongod.conf
               subPath: mongod.conf
-            - name: mongo-init
-              mountPath: /docker-entrypoint-initdb.d/01-campusbite-collections.js
-              subPath: 01-campusbite-collections.js
           readinessProbe:
             tcpSocket:
               port: 27017
@@ -56,9 +47,9 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 256Mi
+              memory: 128Mi
             limits:
-              memory: 512Mi
+              memory: 256Mi
       volumes:
         - name: mongo-config
           configMap:
@@ -66,12 +57,6 @@ spec:
             items:
               - key: mongod.conf
                 path: mongod.conf
-        - name: mongo-init
-          configMap:
-            name: mongo-cafeteria-config
-            items:
-              - key: 01-campusbite-collections.js
-                path: 01-campusbite-collections.js
   volumeClaimTemplates:
     - metadata:
         name: mongo-data
@@ -79,4 +64,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 2Gi
+            storage: 1Gi

@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-rs-init
+  labels:
+    app.kubernetes.io/part-of: campusbite
+    app.kubernetes.io/component: mongo
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: campusbite
+        app.kubernetes.io/component: mongo
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mongo-init
+          image: mongo:7.0
+          command:
+            - bash
+            - -c
+            - |
+              set -e
+              for host in mongo-0.mongo mongo-1.mongo mongo-2.mongo; do
+                echo "waiting for $host"
+                until mongosh --host "$host" --quiet --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
+                  sleep 3
+                done
+              done
+              mongosh --host mongo-0.mongo --quiet --eval '
+                try {
+                  rs.status();
+                  print("replica set already initiated");
+                } catch (e) {
+                  rs.initiate({
+                    _id: "rs0",
+                    members: [
+                      { _id: 0, host: "mongo-0.mongo.campusbite.svc.cluster.local:27017" },
+                      { _id: 1, host: "mongo-1.mongo.campusbite.svc.cluster.local:27017" },
+                      { _id: 2, host: "mongo-2.mongo.campusbite.svc.cluster.local:27017" }
+                    ]
+                  });
+                }
+              '
+              until mongosh --host mongo-0.mongo --quiet --eval "quit(rs.isMaster().ismaster ? 0 : 1)"; do
+                sleep 3
+              done
+              echo "replica set rs0 is ready"
