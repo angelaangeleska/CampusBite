@@ -51,8 +51,8 @@ jobs:
         working-directory: ${{ matrix.service }}
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pytest -q
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+          python -m pytest -q --tb=short
 
   test-frontend:
     name: Test frontend

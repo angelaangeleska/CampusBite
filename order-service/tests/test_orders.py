@@ -33,23 +33,19 @@ def test_notification_message_for_new_order() -> None:
 
 
 def test_health_ok() -> None:
-    with (
-        patch("app.main.ping_db", new_callable=AsyncMock) as ping,
-        patch("app.main.close_client", new_callable=AsyncMock),
-    ):
-        ping.return_value = None
-        with TestClient(app) as client:
-            response = client.get("/health")
+    with patch("app.main.ping_db", new_callable=AsyncMock) as ping:
+        with patch("app.main.close_client", new_callable=AsyncMock):
+            ping.return_value = None
+            with TestClient(app) as client:
+                response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "service": "order-service"}
 
 
 def test_health_when_database_is_down() -> None:
-    with (
-        patch("app.main.ping_db", new_callable=AsyncMock) as ping,
-        patch("app.main.close_client", new_callable=AsyncMock),
-    ):
-        ping.side_effect = RuntimeError("mongo down")
-        with TestClient(app) as client:
-            response = client.get("/health")
+    with patch("app.main.ping_db", new_callable=AsyncMock) as ping:
+        with patch("app.main.close_client", new_callable=AsyncMock):
+            ping.side_effect = RuntimeError("mongo down")
+            with TestClient(app) as client:
+                response = client.get("/health")
     assert response.status_code == 503

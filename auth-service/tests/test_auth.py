@@ -41,27 +41,23 @@ def test_create_token_contains_subject_and_role() -> None:
 
 
 def test_health_ok() -> None:
-    with (
-        patch("app.main.ping_db", new_callable=AsyncMock) as ping,
-        patch("app.main.close_client", new_callable=AsyncMock),
-        patch("app.main.get_db") as get_db,
-    ):
-        ping.return_value = None
-        get_db.return_value.users.create_index = AsyncMock()
-        with TestClient(app) as client:
-            response = client.get("/health")
+    with patch("app.main.ping_db", new_callable=AsyncMock) as ping:
+        with patch("app.main.close_client", new_callable=AsyncMock):
+            with patch("app.main.get_db") as get_db:
+                ping.return_value = None
+                get_db.return_value.users.create_index = AsyncMock()
+                with TestClient(app) as client:
+                    response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "service": "auth-service"}
 
 
 def test_health_when_database_is_down() -> None:
-    with (
-        patch("app.main.ping_db", new_callable=AsyncMock) as ping,
-        patch("app.main.close_client", new_callable=AsyncMock),
-        patch("app.main.get_db") as get_db,
-    ):
-        ping.side_effect = RuntimeError("mongo down")
-        get_db.return_value.users.create_index = AsyncMock()
-        with TestClient(app) as client:
-            response = client.get("/health")
+    with patch("app.main.ping_db", new_callable=AsyncMock) as ping:
+        with patch("app.main.close_client", new_callable=AsyncMock):
+            with patch("app.main.get_db") as get_db:
+                ping.side_effect = RuntimeError("mongo down")
+                get_db.return_value.users.create_index = AsyncMock()
+                with TestClient(app) as client:
+                    response = client.get("/health")
     assert response.status_code == 503
