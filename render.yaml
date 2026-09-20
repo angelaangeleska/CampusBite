@@ -64,7 +64,6 @@ services:
   - type: web
     name: campusbite-frontend
     runtime: static
-    plan: free
     autoDeploy: true
     rootDir: frontend
     buildCommand: npm ci && npm run build
