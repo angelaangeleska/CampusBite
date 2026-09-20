@@ -59,7 +59,14 @@ function browserApiBase(envValue: string | undefined, devFallback: string): stri
   if (import.meta.env.DEV) {
     return (envValue ?? devFallback).replace(/\/$/, "");
   }
-  return (envValue || "").replace(/\/$/, "");
+  let value = (envValue || "").replace(/\/$/, "");
+  if (value && !/^https?:\/\//i.test(value)) {
+    if (!value.includes(".")) {
+      value = `${value}.onrender.com`;
+    }
+    value = `https://${value}`;
+  }
+  return value;
 }
 
 const MENU_API = browserApiBase(import.meta.env.VITE_MENU_API_URL, "http://127.0.0.1:8001");

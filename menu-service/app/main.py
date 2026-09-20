@@ -33,6 +33,7 @@ app = FastAPI(title="CampusBite Menu Service", version="1.0.0", lifespan=lifespa
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"https://[a-z0-9.-]+\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
