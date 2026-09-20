@@ -1,0 +1,67 @@
+server {
+    listen __PORT__;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /api/menu {
+        proxy_pass __MENU_SERVICE_URL__;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host __MENU_HOST__;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location /api/orders {
+        proxy_pass __ORDER_SERVICE_URL__;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host __ORDER_HOST__;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location /api/notifications {
+        proxy_pass __NOTIFY_SERVICE_URL__;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host __NOTIFY_HOST__;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location /api/auth {
+        proxy_pass __AUTH_SERVICE_URL__;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host __AUTH_HOST__;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location /ready {
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

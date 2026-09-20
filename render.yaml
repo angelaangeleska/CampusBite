@@ -1,0 +1,118 @@
+services:
+  - type: web
+    name: campusbite-menu
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    dockerfilePath: ./menu-service/Dockerfile
+    dockerContext: ./menu-service
+    envVars:
+      - fromGroup: campusbite-shared
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGINS
+        fromService:
+          name: campusbite-frontend
+          type: web
+          property: host
+
+  - type: web
+    name: campusbite-order
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    dockerfilePath: ./order-service/Dockerfile
+    dockerContext: ./order-service
+    envVars:
+      - fromGroup: campusbite-shared
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGINS
+        fromService:
+          name: campusbite-frontend
+          type: web
+          property: host
+      - key: MENU_SERVICE_URL
+        fromService:
+          name: campusbite-menu
+          type: web
+          property: host
+      - key: NOTIFY_SERVICE_URL
+        fromService:
+          name: campusbite-notify
+          type: web
+          property: host
+
+  - type: web
+    name: campusbite-notify
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    dockerfilePath: ./notify-service/Dockerfile
+    dockerContext: ./notify-service
+    envVars:
+      - fromGroup: campusbite-shared
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGINS
+        fromService:
+          name: campusbite-frontend
+          type: web
+          property: host
+
+  - type: web
+    name: campusbite-auth
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    dockerfilePath: ./auth-service/Dockerfile
+    dockerContext: ./auth-service
+    envVars:
+      - fromGroup: campusbite-shared
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGINS
+        fromService:
+          name: campusbite-frontend
+          type: web
+          property: host
+
+  - type: web
+    name: campusbite-frontend
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /ready
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: MENU_SERVICE_URL
+        fromService:
+          name: campusbite-menu
+          type: web
+          property: host
+      - key: ORDER_SERVICE_URL
+        fromService:
+          name: campusbite-order
+          type: web
+          property: host
+      - key: NOTIFY_SERVICE_URL
+        fromService:
+          name: campusbite-notify
+          type: web
+          property: host
+      - key: AUTH_SERVICE_URL
+        fromService:
+          name: campusbite-auth
+          type: web
+          property: host
+
+envVarGroups:
+  - name: campusbite-shared
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
